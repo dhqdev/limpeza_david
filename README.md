@@ -44,7 +44,7 @@ Com apenas um comando, você pode instalar e executar a ferramenta em qualquer m
 Abra o **PowerShell como Administrador** e execute:
 
 ```powershell
-irm https://raw.githubusercontent.com/SEU_USUARIO/limpeza_david/main/installer/install_windows.ps1 | iex
+irm https://raw.githubusercontent.com/dhqdev/limpeza_david/main/installer/install_windows.ps1 | iex
 ```
 
 ### 🐧 Linux (Ubuntu/Debian)
@@ -52,7 +52,7 @@ irm https://raw.githubusercontent.com/SEU_USUARIO/limpeza_david/main/installer/i
 Abra o **Terminal** e execute:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/SEU_USUARIO/limpeza_david/main/installer/install_linux.sh | bash
+curl -fsSL https://raw.githubusercontent.com/dhqdev/limpeza_david/main/installer/install_linux.sh | bash
 ```
 
 ---
