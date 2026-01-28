@@ -1,0 +1,18 @@
+# Limpeza David - Dependências Python
+# =====================================
+
+# GUI
+# tkinter já vem com Python (não precisa instalar via pip)
+
+# Empacotamento (opcional - para criar executável)
+pyinstaller>=6.0.0
+
+# Manipulação de imagens (opcional - para converter ícones)
+Pillow>=10.0.0
+
+# Logging avançado (opcional)
+# colorama>=0.4.6  # Para cores no Windows
+
+# Testes (desenvolvimento)
+# pytest>=7.0.0
+# pytest-cov>=4.0.0
