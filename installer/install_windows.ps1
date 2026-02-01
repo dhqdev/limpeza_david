@@ -216,6 +216,44 @@ function Install-Dependencies {
     }
 }
 
+function Convert-PngToIco {
+    param(
+        [string]$PngPath,
+        [string]$IcoPath
+    )
+    
+    try {
+        # Usa Python com Pillow para converter PNG para ICO
+        $pythonScript = @"
+import sys
+try:
+    from PIL import Image
+    img = Image.open(r'$PngPath')
+    # Redimensiona para tamanhos de ícone padrão
+    icon_sizes = [(16, 16), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)]
+    img.save(r'$IcoPath', format='ICO', sizes=icon_sizes)
+    print('OK')
+except ImportError:
+    # Se Pillow não está instalado, instala e tenta novamente
+    import subprocess
+    subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'Pillow', '-q'])
+    from PIL import Image
+    img = Image.open(r'$PngPath')
+    icon_sizes = [(16, 16), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)]
+    img.save(r'$IcoPath', format='ICO', sizes=icon_sizes)
+    print('OK')
+except Exception as e:
+    print(f'ERROR: {e}')
+"@
+        
+        $result = python -c $pythonScript 2>&1
+        return $result -eq 'OK'
+    }
+    catch {
+        return $false
+    }
+}
+
 function Create-Shortcut {
     Write-ColorOutput "🔗 Criando atalho na Área de Trabalho..." "Cyan"
     
@@ -223,7 +261,17 @@ function Create-Shortcut {
         $shortcutPath = Join-Path $DESKTOP_PATH "$APP_NAME.lnk"
         $pythonPath = (Get-Command python).Source
         $scriptPath = "$INSTALL_DIR\app\main.py"
-        $iconPath = "$INSTALL_DIR\assets\icon.ico"
+        $iconPathIco = "$INSTALL_DIR\assets\icon.ico"
+        $iconPathPng = "$INSTALL_DIR\assets\icon.png"
+        
+        # Converte PNG para ICO se necessário
+        if ((Test-Path $iconPathPng) -and (-not (Test-Path $iconPathIco))) {
+            Write-ColorOutput "🎨 Convertendo ícone PNG para ICO..." "Yellow"
+            $converted = Convert-PngToIco -PngPath $iconPathPng -IcoPath $iconPathIco
+            if ($converted) {
+                Write-ColorOutput "✅ Ícone convertido com sucesso" "Green"
+            }
+        }
         
         # Cria o atalho
         $shell = New-Object -ComObject WScript.Shell
@@ -234,12 +282,12 @@ function Create-Shortcut {
         $shortcut.Description = "Limpeza David - Limpador de Sistema"
         $shortcut.WindowStyle = 1
         
-        # Define ícone se existir
-        if (Test-Path $iconPath) {
-            $shortcut.IconLocation = $iconPath
+        # Define ícone (prioriza ICO, depois tenta ícone do sistema)
+        if (Test-Path $iconPathIco) {
+            $shortcut.IconLocation = $iconPathIco
         }
-        elseif (Test-Path "$INSTALL_DIR\assets\icon.png") {
-            # Usa um ícone padrão se o .ico não existir
+        else {
+            # Usa um ícone padrão do sistema
             $shortcut.IconLocation = "%SystemRoot%\System32\cleanmgr.exe,0"
         }
         
