@@ -518,9 +518,13 @@ verify_installation() {
     fi
     
     # Verifica se o atalho existe (script shell na área de trabalho)
-    SHELL_LAUNCHER="$DESKTOP_DIR/Limpeza David"
-    if [[ ! -f "$SHELL_LAUNCHER" ]]; then
+    # Re-detecta o diretório da área de trabalho para garantir consistência
+    local CURRENT_DESKTOP_DIR
+    CURRENT_DESKTOP_DIR=$(detect_desktop_dir)
+    local SHELL_LAUNCHER_CHECK="$CURRENT_DESKTOP_DIR/Limpeza David"
+    if [[ ! -f "$SHELL_LAUNCHER_CHECK" ]]; then
         log_error "Atalho na área de trabalho não encontrado"
+        log_info "Esperado em: $SHELL_LAUNCHER_CHECK"
         ((ERRORS++))
     fi
     
