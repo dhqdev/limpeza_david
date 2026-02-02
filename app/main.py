@@ -11,6 +11,7 @@ import os
 import sys
 import platform
 import threading
+import math
 import tkinter as tk
 from tkinter import ttk, messagebox, scrolledtext
 from datetime import datetime
@@ -32,19 +33,280 @@ else:
     from app.cleaner.linux import LinuxCleaner as SystemCleaner
 
 
+class SplashScreen:
+    """
+    Tela de splash animada com vassourinha e barra de carregamento.
+    """
+    
+    def __init__(self, on_complete_callback):
+        self.root = tk.Tk()
+        self.root.title("Limpeza David")
+        self.root.geometry("500x400")
+        self.root.resizable(False, False)
+        self.root.overrideredirect(True)  # Remove bordas da janela
+        
+        # Centraliza a janela
+        self.root.update_idletasks()
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+        x = (screen_width - 500) // 2
+        y = (screen_height - 400) // 2
+        self.root.geometry(f"500x400+{x}+{y}")
+        
+        self.on_complete = on_complete_callback
+        self.angle = 0
+        self.progress = 0
+        self.loading_text = "Iniciando..."
+        
+        self._build_ui()
+        self._animate()
+        
+    def _build_ui(self):
+        """Constrói a interface da splash screen."""
+        # Frame principal com gradiente simulado
+        self.main_frame = tk.Frame(self.root, bg='#1a1a2e')
+        self.main_frame.pack(fill=tk.BOTH, expand=True)
+        
+        # Borda decorativa
+        border_frame = tk.Frame(self.main_frame, bg='#6366f1', padx=3, pady=3)
+        border_frame.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
+        
+        inner_frame = tk.Frame(border_frame, bg='#1a1a2e')
+        inner_frame.pack(fill=tk.BOTH, expand=True)
+        
+        # Canvas para animação
+        self.canvas = tk.Canvas(
+            inner_frame, 
+            width=480, 
+            height=250,
+            bg='#1a1a2e',
+            highlightthickness=0
+        )
+        self.canvas.pack(pady=(30, 10))
+        
+        # Título
+        title_label = tk.Label(
+            inner_frame,
+            text="Limpeza David",
+            font=('DejaVu Sans', 28, 'bold'),
+            fg='#6366f1',
+            bg='#1a1a2e'
+        )
+        title_label.pack(pady=(0, 5))
+        
+        # Subtítulo
+        subtitle_label = tk.Label(
+            inner_frame,
+            text="Limpador de Sistema Inteligente",
+            font=('DejaVu Sans', 12),
+            fg='#8b8b9e',
+            bg='#1a1a2e'
+        )
+        subtitle_label.pack(pady=(0, 20))
+        
+        # Frame da barra de progresso
+        progress_frame = tk.Frame(inner_frame, bg='#1a1a2e')
+        progress_frame.pack(fill=tk.X, padx=50, pady=(10, 5))
+        
+        # Barra de progresso personalizada
+        self.progress_canvas = tk.Canvas(
+            progress_frame,
+            width=380,
+            height=8,
+            bg='#2d2d44',
+            highlightthickness=0
+        )
+        self.progress_canvas.pack()
+        
+        # Label de status
+        self.status_label = tk.Label(
+            inner_frame,
+            text="Iniciando...",
+            font=('DejaVu Sans', 10),
+            fg='#6b7280',
+            bg='#1a1a2e'
+        )
+        self.status_label.pack(pady=(10, 0))
+        
+    def _draw_broom(self, angle):
+        """Desenha a vassourinha animada."""
+        self.canvas.delete("all")
+        
+        cx, cy = 240, 125  # Centro
+        
+        # Partículas de poeira animadas
+        for i in range(8):
+            particle_angle = (angle * 2 + i * 45) * math.pi / 180
+            distance = 80 + math.sin(angle * 0.1 + i) * 20
+            px = cx + math.cos(particle_angle) * distance
+            py = cy + math.sin(particle_angle) * distance
+            size = 3 + math.sin(angle * 0.05 + i) * 2
+            alpha = int(100 + math.sin(angle * 0.1 + i) * 50)
+            alpha = max(0, min(255, alpha))
+            color = f'#{alpha:02x}{alpha:02x}{min(255, alpha + 50):02x}'
+            self.canvas.create_oval(
+                px - size, py - size, px + size, py + size,
+                fill=color, outline=''
+            )
+        
+        # Círculo de fundo brilhante
+        glow_size = 90 + math.sin(angle * 0.05) * 10
+        self.canvas.create_oval(
+            cx - glow_size, cy - glow_size,
+            cx + glow_size, cy + glow_size,
+            fill='#252540', outline=''
+        )
+        
+        # Vassourinha principal
+        broom_angle = math.sin(angle * 0.08) * 15  # Balanço
+        rad = math.radians(broom_angle - 45)
+        
+        # Cabo da vassoura
+        handle_length = 60
+        hx = cx - math.cos(rad) * handle_length
+        hy = cy - math.sin(rad) * handle_length
+        self.canvas.create_line(
+            cx, cy, hx, hy,
+            fill='#8B4513', width=8, capstyle=tk.ROUND
+        )
+        
+        # Cabeça da vassoura (cerdas)
+        bristle_rad = math.radians(broom_angle + 45)
+        for i in range(-3, 4):
+            bristle_angle = bristle_rad + math.radians(i * 8)
+            bx = cx + math.cos(bristle_angle) * 45
+            by = cy + math.sin(bristle_angle) * 45
+            # Movimento das cerdas
+            wave = math.sin(angle * 0.1 + i * 0.5) * 3
+            self.canvas.create_line(
+                cx + math.cos(bristle_angle) * 15,
+                cy + math.sin(bristle_angle) * 15,
+                bx + wave, by + wave,
+                fill='#DAA520', width=4, capstyle=tk.ROUND
+            )
+        
+        # Base da cabeça
+        self.canvas.create_oval(
+            cx - 18, cy - 18, cx + 18, cy + 18,
+            fill='#6366f1', outline='#818cf8', width=2
+        )
+        
+        # Brilho na cabeça
+        self.canvas.create_oval(
+            cx - 8, cy - 12, cx + 2, cy - 6,
+            fill='#a5b4fc', outline=''
+        )
+        
+        # Estrelinhas decorativas
+        for i in range(5):
+            star_angle = (angle + i * 72) * math.pi / 180
+            star_dist = 100 + i * 10
+            sx = cx + math.cos(star_angle) * star_dist
+            sy = cy + math.sin(star_angle) * star_dist
+            star_size = 2 + math.sin(angle * 0.1 + i) * 1
+            self.canvas.create_text(
+                sx, sy,
+                text="",
+                font=('DejaVu Sans', int(8 + star_size)),
+                fill='#fbbf24'
+            )
+        
+    def _update_progress_bar(self):
+        """Atualiza a barra de progresso."""
+        self.progress_canvas.delete("all")
+        
+        # Fundo
+        self.progress_canvas.create_rectangle(
+            0, 0, 380, 8,
+            fill='#2d2d44', outline=''
+        )
+        
+        # Progresso com gradiente
+        if self.progress > 0:
+            width = int(380 * self.progress / 100)
+            # Efeito de brilho
+            self.progress_canvas.create_rectangle(
+                0, 0, width, 8,
+                fill='#6366f1', outline=''
+            )
+            # Brilho no topo
+            self.progress_canvas.create_rectangle(
+                0, 0, width, 3,
+                fill='#818cf8', outline=''
+            )
+        
+    def _animate(self):
+        """Loop de animação."""
+        self.angle += 3
+        self._draw_broom(self.angle)
+        
+        # Simula progresso de carregamento
+        if self.progress < 100:
+            self.progress += 2
+            
+            # Atualiza texto de status
+            if self.progress < 20:
+                self.loading_text = "Iniciando sistema..."
+            elif self.progress < 40:
+                self.loading_text = "Carregando módulos..."
+            elif self.progress < 60:
+                self.loading_text = "Verificando permissões..."
+            elif self.progress < 80:
+                self.loading_text = "Preparando interface..."
+            else:
+                self.loading_text = "Quase pronto..."
+            
+            self.status_label.config(text=self.loading_text)
+            self._update_progress_bar()
+            
+            self.root.after(50, self._animate)
+        else:
+            # Carregamento completo
+            self.status_label.config(text="Pronto!")
+            self._update_progress_bar()
+            self.root.after(500, self._finish)
+    
+    def _finish(self):
+        """Finaliza a splash e abre a aplicação principal."""
+        self.root.destroy()
+        self.on_complete()
+        
+    def run(self):
+        """Inicia a splash screen."""
+        self.root.mainloop()
+
+
 class LimpezaDavidApp:
     """
-    Aplicação principal com interface gráfica Tkinter.
+    Aplicação principal com interface gráfica Tkinter moderna.
     """
     
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("Limpeza David - Limpador de Sistema")
-        self.root.geometry("800x600")
-        self.root.minsize(700, 500)
+        self.root.geometry("850x650")
+        self.root.minsize(750, 550)
         
-        # Configurar ícone se existir (desabilitado por padrão - pode causar erro com ícones grandes)
-        # self._set_icon()
+        # Cores do tema
+        self.theme = {
+            'bg': '#1a1a2e',
+            'bg_secondary': '#16213e',
+            'bg_card': '#1f2940',
+            'primary': '#6366f1',
+            'primary_hover': '#818cf8',
+            'success': '#22c55e',
+            'warning': '#f59e0b',
+            'error': '#ef4444',
+            'text': '#f1f5f9',
+            'text_secondary': '#94a3b8',
+            'border': '#334155'
+        }
+        
+        # Configurar cor de fundo
+        self.root.configure(bg=self.theme['bg'])
+        
+        # Configurar ícone se existir
+        self._set_icon()
         
         # Inicializa o cleaner
         self.cleaner = SystemCleaner()
@@ -54,6 +316,7 @@ class LimpezaDavidApp:
         self.scan_results = {}
         self.is_scanning = False
         self.is_cleaning = False
+        self.scan_complete = False
         
         # Checkboxes para categorias
         self.category_vars = {}
@@ -67,10 +330,12 @@ class LimpezaDavidApp:
         # Centraliza a janela
         CENTER_WINDOW(self.root)
         
+        # Inicia análise automática após a interface carregar
+        self.root.after(500, self._start_scan)
+        
     def _set_icon(self):
         """Define o ícone da aplicação."""
         try:
-            # Tenta encontrar o ícone
             base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             icon_paths = [
                 os.path.join(base_path, 'assets', 'icon.png'),
@@ -92,202 +357,305 @@ class LimpezaDavidApp:
         """Configura o estilo visual da aplicação."""
         style = ttk.Style()
         
-        # Tema base
-        if platform.system() == 'Windows':
-            style.theme_use('vista')
-        else:
-            try:
-                style.theme_use('clam')
-            except:
-                pass
+        # Configurar estilos personalizados
+        style.configure('Dark.TFrame', background=self.theme['bg'])
+        style.configure('Card.TFrame', background=self.theme['bg_card'])
         
-        # Cores personalizadas
-        self.root.configure(bg=COLORS['bg'])
-        
-        # Configurar estilos
         style.configure('Title.TLabel', 
-                       font=('Segoe UI', 18, 'bold'),
-                       foreground=COLORS['primary'])
+                       font=('DejaVu Sans', 24, 'bold'),
+                       foreground=self.theme['primary'],
+                       background=self.theme['bg'])
         
         style.configure('Header.TLabel',
-                       font=('Segoe UI', 12, 'bold'),
-                       foreground=COLORS['text'])
+                       font=('DejaVu Sans', 14, 'bold'),
+                       foreground=self.theme['text'],
+                       background=self.theme['bg'])
         
         style.configure('Info.TLabel',
-                       font=('Segoe UI', 10),
-                       foreground=COLORS['text_secondary'])
+                       font=('DejaVu Sans', 11),
+                       foreground=self.theme['text_secondary'],
+                       background=self.theme['bg'])
         
         style.configure('Success.TLabel',
-                       font=('Segoe UI', 11, 'bold'),
-                       foreground=COLORS['success'])
+                       font=('DejaVu Sans', 13, 'bold'),
+                       foreground=self.theme['success'],
+                       background=self.theme['bg'])
+                       
+        style.configure('Card.TLabel',
+                       font=('DejaVu Sans', 11),
+                       foreground=self.theme['text'],
+                       background=self.theme['bg_card'])
+                       
+        style.configure('Dark.TCheckbutton',
+                       font=('DejaVu Sans', 11),
+                       foreground=self.theme['text'],
+                       background=self.theme['bg_card'])
         
-        style.configure('Action.TButton',
-                       font=('Segoe UI', 11, 'bold'),
-                       padding=(20, 10))
-        
-        style.configure('Secondary.TButton',
-                       font=('Segoe UI', 10),
-                       padding=(15, 8))
+        # Estilo para LabelFrame
+        style.configure('Card.TLabelframe',
+                       background=self.theme['bg_card'],
+                       foreground=self.theme['text'])
+        style.configure('Card.TLabelframe.Label',
+                       font=('DejaVu Sans', 12, 'bold'),
+                       foreground=self.theme['primary'],
+                       background=self.theme['bg_card'])
                        
     def _build_ui(self):
-        """Constrói a interface gráfica."""
+        """Constrói a interface gráfica moderna."""
         
         # Frame principal
-        main_frame = ttk.Frame(self.root, padding="20")
+        main_frame = tk.Frame(self.root, bg=self.theme['bg'], padx=25, pady=20)
         main_frame.pack(fill=tk.BOTH, expand=True)
         
         # === Cabeçalho ===
-        header_frame = ttk.Frame(main_frame)
-        header_frame.pack(fill=tk.X, pady=(0, 20))
+        header_frame = tk.Frame(main_frame, bg=self.theme['bg'])
+        header_frame.pack(fill=tk.X, pady=(0, 25))
         
-        title_label = ttk.Label(
-            header_frame, 
+        # Logo e título
+        title_frame = tk.Frame(header_frame, bg=self.theme['bg'])
+        title_frame.pack(side=tk.LEFT)
+        
+        title_label = tk.Label(
+            title_frame, 
             text="Limpeza David",
-            style='Title.TLabel'
+            font=('DejaVu Sans', 26, 'bold'),
+            fg=self.theme['primary'],
+            bg=self.theme['bg']
         )
-        title_label.pack(side=tk.LEFT)
+        title_label.pack(anchor='w')
+        
+        subtitle_label = tk.Label(
+            title_frame,
+            text="Libere espaço e otimize seu sistema",
+            font=('DejaVu Sans', 11),
+            fg=self.theme['text_secondary'],
+            bg=self.theme['bg']
+        )
+        subtitle_label.pack(anchor='w')
         
         # Info do sistema
-        system_info = f"Sistema: {platform.system()} {platform.release()}"
-        system_label = ttk.Label(
-            header_frame,
+        system_frame = tk.Frame(header_frame, bg=self.theme['bg_card'], padx=15, pady=10)
+        system_frame.pack(side=tk.RIGHT)
+        
+        system_info = f"{platform.system()} {platform.release()}"
+        system_label = tk.Label(
+            system_frame,
             text=system_info,
-            style='Info.TLabel'
+            font=('DejaVu Sans', 10),
+            fg=self.theme['text_secondary'],
+            bg=self.theme['bg_card']
         )
-        system_label.pack(side=tk.RIGHT)
+        system_label.pack()
         
         # === Frame de Categorias ===
-        categories_frame = ttk.LabelFrame(
-            main_frame, 
+        categories_outer = tk.Frame(main_frame, bg=self.theme['bg_card'], padx=2, pady=2)
+        categories_outer.pack(fill=tk.X, pady=(0, 20))
+        
+        categories_frame = tk.Frame(categories_outer, bg=self.theme['bg_card'], padx=20, pady=15)
+        categories_frame.pack(fill=tk.X)
+        
+        cat_title = tk.Label(
+            categories_frame,
             text="Categorias de Limpeza",
-            padding="15"
+            font=('DejaVu Sans', 13, 'bold'),
+            fg=self.theme['primary'],
+            bg=self.theme['bg_card']
         )
-        categories_frame.pack(fill=tk.X, pady=(0, 15))
+        cat_title.pack(anchor='w', pady=(0, 15))
         
         # Grid de checkboxes
+        checkbox_frame = tk.Frame(categories_frame, bg=self.theme['bg_card'])
+        checkbox_frame.pack(fill=tk.X)
+        
         categories = self.cleaner.get_categories()
         
         for i, (cat_id, cat_info) in enumerate(categories.items()):
             var = tk.BooleanVar(value=True)
             self.category_vars[cat_id] = var
             
-            cb = ttk.Checkbutton(
-                categories_frame,
+            cb = tk.Checkbutton(
+                checkbox_frame,
                 text=f"{cat_info['icon']} {cat_info['name']}",
-                variable=var
+                variable=var,
+                font=('DejaVu Sans', 11),
+                fg=self.theme['text'],
+                bg=self.theme['bg_card'],
+                selectcolor=self.theme['bg_secondary'],
+                activebackground=self.theme['bg_card'],
+                activeforeground=self.theme['text'],
+                highlightthickness=0,
+                bd=0
             )
-            cb.grid(row=i // 3, column=i % 3, sticky=tk.W, padx=10, pady=5)
+            cb.grid(row=i // 3, column=i % 3, sticky=tk.W, padx=15, pady=8)
         
-        # === Botões de Ação ===
-        buttons_frame = ttk.Frame(main_frame)
-        buttons_frame.pack(fill=tk.X, pady=(0, 15))
+        # Botão re-analisar (discreto, no canto direito)
+        rescan_frame = tk.Frame(categories_frame, bg=self.theme['bg_card'])
+        rescan_frame.pack(fill=tk.X, pady=(15, 0))
         
-        self.scan_btn = ttk.Button(
-            buttons_frame,
-            text="Analisar Sistema",
-            style='Action.TButton',
-            command=self._start_scan
+        self.rescan_btn = tk.Button(
+            rescan_frame,
+            text="Re-analisar",
+            command=self._start_scan,
+            font=('DejaVu Sans', 10),
+            fg=self.theme['text_secondary'],
+            bg=self.theme['bg_secondary'],
+            activebackground=self.theme['primary'],
+            activeforeground='white',
+            relief=tk.FLAT,
+            padx=15,
+            pady=5,
+            cursor='hand2'
         )
-        self.scan_btn.pack(side=tk.LEFT, padx=(0, 10))
+        self.rescan_btn.pack(side=tk.RIGHT)
         
-        self.clean_btn = ttk.Button(
-            buttons_frame,
-            text="Limpar Selecionados",
-            style='Action.TButton',
+        # === Barra de Progresso e Status ===
+        progress_frame = tk.Frame(main_frame, bg=self.theme['bg'])
+        progress_frame.pack(fill=tk.X, pady=(0, 15))
+        
+        # Canvas para barra de progresso personalizada
+        self.progress_canvas = tk.Canvas(
+            progress_frame,
+            width=800,
+            height=12,
+            bg=self.theme['bg_secondary'],
+            highlightthickness=0
+        )
+        self.progress_canvas.pack(fill=tk.X)
+        
+        self.progress_var = 0
+        
+        # Status
+        self.status_label = tk.Label(
+            progress_frame,
+            text="Analisando sistema automaticamente...",
+            font=('DejaVu Sans', 11),
+            fg=self.theme['text_secondary'],
+            bg=self.theme['bg']
+        )
+        self.status_label.pack(pady=(10, 0))
+        
+        # === RODAPÉ COM BOTÃO (PRIMEIRO para garantir visibilidade) ===
+        footer_frame = tk.Frame(main_frame, bg=self.theme['bg'], pady=15)
+        footer_frame.pack(fill=tk.X, side=tk.BOTTOM)
+        
+        # Resumo (lado esquerdo)
+        left_footer = tk.Frame(footer_frame, bg=self.theme['bg'])
+        left_footer.pack(side=tk.LEFT, fill=tk.Y)
+        
+        self.summary_label = tk.Label(
+            left_footer,
+            text="Analisando...",
+            font=('DejaVu Sans', 14, 'bold'),
+            fg=self.theme['success'],
+            bg=self.theme['bg']
+        )
+        self.summary_label.pack(anchor='w')
+        
+        # Versão
+        version_label = tk.Label(
+            left_footer,
+            text="v1.0.0",
+            font=('DejaVu Sans', 9),
+            fg=self.theme['text_secondary'],
+            bg=self.theme['bg']
+        )
+        version_label.pack(anchor='w')
+        
+        # Botão de limpar (GRANDE e bem visível)
+        self.clean_btn = tk.Button(
+            footer_frame,
+            text="LIMPAR SISTEMA",
             command=self._start_clean,
+            font=('DejaVu Sans', 16, 'bold'),
+            fg='white',
+            bg=self.theme['primary'],
+            activebackground=self.theme['primary_hover'],
+            activeforeground='white',
+            relief=tk.FLAT,
+            padx=40,
+            pady=15,
+            cursor='hand2',
             state=tk.DISABLED
         )
-        self.clean_btn.pack(side=tk.LEFT, padx=(0, 10))
+        self.clean_btn.pack(side=tk.RIGHT)
         
-        self.select_all_btn = ttk.Button(
-            buttons_frame,
-            text="Selecionar Todos",
-            style='Secondary.TButton',
-            command=self._select_all
-        )
-        self.select_all_btn.pack(side=tk.RIGHT)
+        # === Área de Log ===
+        log_outer = tk.Frame(main_frame, bg=self.theme['border'], padx=1, pady=1)
+        log_outer.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
         
-        self.deselect_all_btn = ttk.Button(
-            buttons_frame,
-            text="❌ Desmarcar Todos",
-            style='Secondary.TButton',
-            command=self._deselect_all
-        )
-        self.deselect_all_btn.pack(side=tk.RIGHT, padx=(0, 10))
+        log_frame = tk.Frame(log_outer, bg=self.theme['bg_card'], padx=15, pady=15)
+        log_frame.pack(fill=tk.BOTH, expand=True)
         
-        # === Barra de Progresso ===
-        progress_frame = ttk.Frame(main_frame)
-        progress_frame.pack(fill=tk.X, pady=(0, 10))
-        
-        self.progress_var = tk.DoubleVar(value=0)
-        self.progress_bar = ttk.Progressbar(
-            progress_frame,
-            variable=self.progress_var,
-            maximum=100,
-            mode='determinate'
-        )
-        self.progress_bar.pack(fill=tk.X)
-        
-        self.status_label = ttk.Label(
-            progress_frame,
-            text="Pronto para análise",
-            style='Info.TLabel'
-        )
-        self.status_label.pack(pady=(5, 0))
-        
-        # === Área de Resultados/Log ===
-        results_frame = ttk.LabelFrame(
-            main_frame,
+        log_title = tk.Label(
+            log_frame,
             text="📋 Log de Operações",
-            padding="10"
+            font=('DejaVu Sans', 12, 'bold'),
+            fg=self.theme['primary'],
+            bg=self.theme['bg_card']
         )
-        results_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 15))
+        log_title.pack(anchor='w', pady=(0, 10))
         
         self.log_text = scrolledtext.ScrolledText(
-            results_frame,
-            height=12,
-            font=('Consolas', 9),
+            log_frame,
+            height=8,
+            font=('Consolas', 10),
             wrap=tk.WORD,
-            bg='#1e1e1e',
-            fg='#d4d4d4',
-            insertbackground='white'
+            bg='#0d1117',
+            fg='#c9d1d9',
+            insertbackground='white',
+            relief=tk.FLAT,
+            padx=10,
+            pady=10
         )
         self.log_text.pack(fill=tk.BOTH, expand=True)
         
         # Tags para colorir o log
-        self.log_text.tag_configure('info', foreground='#569cd6')
-        self.log_text.tag_configure('success', foreground='#4ec9b0')
-        self.log_text.tag_configure('warning', foreground='#dcdcaa')
-        self.log_text.tag_configure('error', foreground='#f14c4c')
-        self.log_text.tag_configure('header', foreground='#c586c0', font=('Consolas', 9, 'bold'))
-        
-        # === Resumo ===
-        summary_frame = ttk.Frame(main_frame)
-        summary_frame.pack(fill=tk.X)
-        
-        self.summary_label = ttk.Label(
-            summary_frame,
-            text="Espaço a liberar: 0 B",
-            style='Success.TLabel'
-        )
-        self.summary_label.pack(side=tk.LEFT)
-        
-        # Versão
-        version_label = ttk.Label(
-            summary_frame,
-            text="v1.0.0",
-            style='Info.TLabel'
-        )
-        version_label.pack(side=tk.RIGHT)
+        self.log_text.tag_configure('info', foreground='#58a6ff')
+        self.log_text.tag_configure('success', foreground='#3fb950')
+        self.log_text.tag_configure('warning', foreground='#d29922')
+        self.log_text.tag_configure('error', foreground='#f85149')
+        self.log_text.tag_configure('header', foreground='#bc8cff', font=('Consolas', 10, 'bold'))
         
         # Log inicial
-        self._log("═" * 50, 'header')
-        self._log("Limpeza David - Limpador de Sistema", 'header')
+        self._log("═" * 55, 'header')
+        self._log("Limpeza David - Limpador de Sistema Inteligente", 'header')
         self._log(f"📅 {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}", 'info')
         self._log(f"Sistema: {platform.system()} {platform.release()}", 'info')
-        self._log("═" * 50, 'header')
+        self._log("═" * 55, 'header')
         self._log("")
-        self._log("Clique em 'Analisar Sistema' para iniciar.", 'info')
+        self._log("Iniciando análise automática do sistema...", 'info')
+        
+    def _update_progress_bar(self, value):
+        """Atualiza a barra de progresso personalizada."""
+        self.progress_canvas.delete("all")
+        
+        # Obtém a largura atual do canvas
+        self.progress_canvas.update_idletasks()
+        width = self.progress_canvas.winfo_width()
+        
+        if width <= 1:
+            width = 800
+        
+        # Fundo
+        self.progress_canvas.create_rectangle(
+            0, 0, width, 12,
+            fill=self.theme['bg_secondary'], outline=''
+        )
+        
+        # Progresso
+        if value > 0:
+            prog_width = int(width * value / 100)
+            # Cor baseada no progresso
+            color = self.theme['primary']
+            self.progress_canvas.create_rectangle(
+                0, 0, prog_width, 12,
+                fill=color, outline=''
+            )
+            # Brilho
+            self.progress_canvas.create_rectangle(
+                0, 0, prog_width, 4,
+                fill=self.theme['primary_hover'], outline=''
+            )
         
     def _log(self, message, tag=None):
         """Adiciona mensagem ao log."""
@@ -306,7 +674,8 @@ class LimpezaDavidApp:
         
     def _update_progress(self, value):
         """Atualiza a barra de progresso."""
-        self.progress_var.set(value)
+        self.progress_var = value
+        self._update_progress_bar(value)
         self.root.update_idletasks()
         
     def _select_all(self):
@@ -337,8 +706,8 @@ class LimpezaDavidApp:
             return
             
         self.is_scanning = True
-        self.scan_btn.configure(state=tk.DISABLED)
         self.clean_btn.configure(state=tk.DISABLED)
+        self.rescan_btn.configure(state=tk.DISABLED)
         
         thread = threading.Thread(target=self._scan_thread, args=(selected,))
         thread.daemon = True
@@ -377,11 +746,11 @@ class LimpezaDavidApp:
                 self._log(f"    └─ {len(files)} arquivos ({format_size(size)})", 'success')
                 
             self._log("")
-            self._log("═" * 50, 'header')
+            self._log("═" * 55, 'header')
             self._log(f"RESUMO DA ANÁLISE:", 'header')
             self._log(f"   Total de arquivos: {total_files}", 'success')
             self._log(f"   Espaço a liberar: {format_size(total_size)}", 'success')
-            self._log("═" * 50, 'header')
+            self._log("═" * 55, 'header')
             
             self.summary_label.configure(
                 text=f"Espaço a liberar: {format_size(total_size)} ({total_files} arquivos)"
@@ -390,20 +759,23 @@ class LimpezaDavidApp:
             self._update_status("Análise concluída!")
             self._update_progress(100)
             
+            self.scan_complete = True
+            
             if total_files > 0:
                 self.clean_btn.configure(state=tk.NORMAL)
                 self._log("")
-                self._log("Clique em 'Limpar Selecionados' para remover os arquivos.", 'info')
+                self._log("Clique em 'LIMPAR SISTEMA' para remover os arquivos.", 'info')
             else:
                 self._log("")
                 self._log("Sistema já está limpo! Nenhum arquivo para remover.", 'success')
+                self.summary_label.configure(text="Sistema limpo!")
                 
         except Exception as e:
             self._log(f"❌ Erro durante análise: {str(e)}", 'error')
             self.logger.error(f"Erro na análise: {e}")
         finally:
             self.is_scanning = False
-            self.scan_btn.configure(state=tk.NORMAL)
+            self.rescan_btn.configure(state=tk.NORMAL)
             
     def _start_clean(self):
         """Inicia a limpeza em uma thread separada."""
@@ -425,8 +797,8 @@ class LimpezaDavidApp:
             return
             
         self.is_cleaning = True
-        self.scan_btn.configure(state=tk.DISABLED)
         self.clean_btn.configure(state=tk.DISABLED)
+        self.rescan_btn.configure(state=tk.DISABLED)
         
         thread = threading.Thread(target=self._clean_thread)
         thread.daemon = True
@@ -470,13 +842,13 @@ class LimpezaDavidApp:
                     self._log(f"    └─ {errors} erros (arquivos em uso ou protegidos)", 'warning')
                     
             self._log("")
-            self._log("═" * 50, 'header')
+            self._log("═" * 55, 'header')
             self._log(f"LIMPEZA CONCLUÍDA!", 'header')
             self._log(f"   Arquivos removidos: {total_removed}", 'success')
             self._log(f"   Espaço liberado: {format_size(total_size_freed)}", 'success')
             if total_errors > 0:
                 self._log(f"   Erros: {total_errors}", 'warning')
-            self._log("═" * 50, 'header')
+            self._log("═" * 55, 'header')
             
             self.summary_label.configure(
                 text=f"Liberado: {format_size(total_size_freed)}"
@@ -487,6 +859,7 @@ class LimpezaDavidApp:
             
             # Limpa os resultados
             self.scan_results = {}
+            self.scan_complete = False
             
             messagebox.showinfo(
                 "Limpeza Concluída",
@@ -495,12 +868,17 @@ class LimpezaDavidApp:
                 f"Espaço liberado: {format_size(total_size_freed)}"
             )
             
+            # Reinicia análise automática após limpeza
+            self._log("")
+            self._log("Reiniciando análise...", 'info')
+            self.root.after(1000, self._start_scan)
+            
         except Exception as e:
             self._log(f"❌ Erro durante limpeza: {str(e)}", 'error')
             self.logger.error(f"Erro na limpeza: {e}")
         finally:
             self.is_cleaning = False
-            self.scan_btn.configure(state=tk.NORMAL)
+            self.rescan_btn.configure(state=tk.NORMAL)
             
     def run(self):
         """Inicia a aplicação."""
@@ -510,9 +888,14 @@ class LimpezaDavidApp:
 
 
 def main():
-    """Ponto de entrada principal."""
-    app = LimpezaDavidApp()
-    app.run()
+    """Ponto de entrada principal com splash screen."""
+    def start_main_app():
+        app = LimpezaDavidApp()
+        app.run()
+    
+    # Mostra splash screen antes da aplicação principal
+    splash = SplashScreen(start_main_app)
+    splash.run()
 
 
 if __name__ == "__main__":
