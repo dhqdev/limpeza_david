@@ -468,29 +468,43 @@ EOF
         update-desktop-database "$APPLICATIONS_DIR" 2>/dev/null || true
     fi
     
-    # === SOLUÇÃO ALTERNATIVA: Script Shell direto (funciona sem "permitir execução") ===
-    # Remove o .desktop da área de trabalho (que precisa de permissão) 
-    rm -f "$DESKTOP_FILE"
-    
-    # Cria um script shell executável diretamente (não precisa de "trusted")
-    SHELL_LAUNCHER="$DESKTOP_DIR/Limpeza David"
-    cat > "$SHELL_LAUNCHER" << 'LAUNCHER_SCRIPT'
+    # === Cria script de lançamento auxiliar ===
+    LAUNCHER_SCRIPT="$INSTALL_DIR/launch.sh"
+    cat > "$LAUNCHER_SCRIPT" << 'LAUNCH_EOF'
 #!/bin/bash
 cd "$HOME/.local/share/limpeza_david"
 exec python3 run.py
-LAUNCHER_SCRIPT
+LAUNCH_EOF
+    chmod +x "$LAUNCHER_SCRIPT" 2>/dev/null || /bin/chmod +x "$LAUNCHER_SCRIPT" 2>/dev/null || true
+    
+    # === Cria .desktop na área de trabalho com ícone ===
+    # O .desktop aponta para o script shell (mais confiável)
+    cat > "$DESKTOP_FILE" << EOF
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Limpeza David
+GenericName=Limpador de Sistema
+Comment=Ferramenta de limpeza de sistema
+Exec=$LAUNCHER_SCRIPT
+Path=$INSTALL_DIR
+Icon=$ICON_PATH
+Terminal=false
+Categories=Utility;System;
+StartupNotify=false
+EOF
     
     # Torna executável
-    if [[ -x /bin/chmod ]]; then
-        /bin/chmod +x "$SHELL_LAUNCHER"
-    elif [[ -x /usr/bin/chmod ]]; then
-        /usr/bin/chmod +x "$SHELL_LAUNCHER"
-    else
-        chmod +x "$SHELL_LAUNCHER" 2>/dev/null || true
+    chmod +x "$DESKTOP_FILE" 2>/dev/null || /bin/chmod +x "$DESKTOP_FILE" 2>/dev/null || true
+    
+    # Marca como confiável (GNOME)
+    if command -v gio &> /dev/null; then
+        gio set "$DESKTOP_FILE" metadata::trusted true 2>/dev/null || true
     fi
     
-    log_success "Atalho criado em: $SHELL_LAUNCHER"
+    log_success "Atalho criado em: $DESKTOP_FILE"
     log_success "Também disponível no menu de aplicativos (pesquise 'Limpeza David')"
+    log_info "Se o atalho pedir permissão: clique direito > 'Permitir execução'"
 }
 
 # === VERIFICAÇÃO FINAL ===
@@ -517,14 +531,10 @@ verify_installation() {
         ((ERRORS++))
     fi
     
-    # Verifica se o atalho existe (script shell na área de trabalho)
-    # Re-detecta o diretório da área de trabalho para garantir consistência
-    local CURRENT_DESKTOP_DIR
-    CURRENT_DESKTOP_DIR=$(detect_desktop_dir)
-    local SHELL_LAUNCHER_CHECK="$CURRENT_DESKTOP_DIR/Limpeza David"
-    if [[ ! -f "$SHELL_LAUNCHER_CHECK" ]]; then
+    # Verifica se o atalho existe
+    if [[ ! -f "$DESKTOP_FILE" ]]; then
         log_error "Atalho na área de trabalho não encontrado"
-        log_info "Esperado em: $SHELL_LAUNCHER_CHECK"
+        log_info "Esperado em: $DESKTOP_FILE"
         ((ERRORS++))
     fi
     
