@@ -87,7 +87,7 @@ class SplashScreen:
         # Título
         title_label = tk.Label(
             inner_frame,
-            text="[BROOM] Limpeza David",
+            text="Limpeza David",
             font=('DejaVu Sans', 28, 'bold'),
             fg='#6366f1',
             bg='#1a1a2e'
@@ -136,12 +136,12 @@ class SplashScreen:
         
         # Partículas de poeira animadas
         for i in range(8):
-            particle_angle = (angle * 2 + i * 45) * math.pi / 180
-            distance = 80 + math.sin(angle * 0.1 + i) * 20
-            px = cx + math.cos(particle_angle) * distance
-            py = cy + math.sin(particle_angle) * distance
-            size = 3 + math.sin(angle * 0.05 + i) * 2
-            alpha = int(100 + math.sin(angle * 0.1 + i) * 50)
+            particle_angle = (angle 2 + i 45) math.pi / 180
+            distance = 80 + math.sin(angle 0.1 + i) 20
+            px = cx + math.cos(particle_angle) distance
+            py = cy + math.sin(particle_angle) distance
+            size = 3 + math.sin(angle 0.05 + i) 2
+            alpha = int(100 + math.sin(angle 0.1 + i) 50)
             alpha = max(0, min(255, alpha))
             color = f'#{alpha:02x}{alpha:02x}{min(255, alpha + 50):02x}'
             self.canvas.create_oval(
@@ -150,7 +150,7 @@ class SplashScreen:
             )
         
         # Círculo de fundo brilhante
-        glow_size = 90 + math.sin(angle * 0.05) * 10
+        glow_size = 90 + math.sin(angle 0.05) 10
         self.canvas.create_oval(
             cx - glow_size, cy - glow_size,
             cx + glow_size, cy + glow_size,
@@ -158,13 +158,13 @@ class SplashScreen:
         )
         
         # Vassourinha principal
-        broom_angle = math.sin(angle * 0.08) * 15  # Balanço
+        broom_angle = math.sin(angle 0.08) 15  # Balanço
         rad = math.radians(broom_angle - 45)
         
         # Cabo da vassoura
         handle_length = 60
-        hx = cx - math.cos(rad) * handle_length
-        hy = cy - math.sin(rad) * handle_length
+        hx = cx - math.cos(rad) handle_length
+        hy = cy - math.sin(rad) handle_length
         self.canvas.create_line(
             cx, cy, hx, hy,
             fill='#8B4513', width=8, capstyle=tk.ROUND
@@ -173,14 +173,14 @@ class SplashScreen:
         # Cabeça da vassoura (cerdas)
         bristle_rad = math.radians(broom_angle + 45)
         for i in range(-3, 4):
-            bristle_angle = bristle_rad + math.radians(i * 8)
-            bx = cx + math.cos(bristle_angle) * 45
-            by = cy + math.sin(bristle_angle) * 45
+            bristle_angle = bristle_rad + math.radians(i 8)
+            bx = cx + math.cos(bristle_angle) 45
+            by = cy + math.sin(bristle_angle) 45
             # Movimento das cerdas
-            wave = math.sin(angle * 0.1 + i * 0.5) * 3
+            wave = math.sin(angle 0.1 + i 0.5) 3
             self.canvas.create_line(
-                cx + math.cos(bristle_angle) * 15,
-                cy + math.sin(bristle_angle) * 15,
+                cx + math.cos(bristle_angle) 15,
+                cy + math.sin(bristle_angle) 15,
                 bx + wave, by + wave,
                 fill='#DAA520', width=4, capstyle=tk.ROUND
             )
@@ -199,11 +199,11 @@ class SplashScreen:
         
         # Estrelinhas decorativas
         for i in range(5):
-            star_angle = (angle + i * 72) * math.pi / 180
-            star_dist = 100 + i * 10
-            sx = cx + math.cos(star_angle) * star_dist
-            sy = cy + math.sin(star_angle) * star_dist
-            star_size = 2 + math.sin(angle * 0.1 + i) * 1
+            star_angle = (angle + i 72) math.pi / 180
+            star_dist = 100 + i 10
+            sx = cx + math.cos(star_angle) star_dist
+            sy = cy + math.sin(star_angle) star_dist
+            star_size = 2 + math.sin(angle 0.1 + i) 1
             self.canvas.create_text(
                 sx, sy,
                 text="*",
@@ -223,7 +223,7 @@ class SplashScreen:
         
         # Progresso com gradiente
         if self.progress > 0:
-            width = int(380 * self.progress / 100)
+            width = int(380 self.progress / 100)
             # Efeito de brilho
             self.progress_canvas.create_rectangle(
                 0, 0, width, 8,
@@ -262,7 +262,7 @@ class SplashScreen:
             self.root.after(50, self._animate)
         else:
             # Carregamento completo
-            self.status_label.config(text="[OK] Pronto!")
+            self.status_label.config(text="Pronto!")
             self._update_progress_bar()
             self.root.after(500, self._finish)
     
@@ -417,7 +417,7 @@ class LimpezaDavidApp:
         
         title_label = tk.Label(
             title_frame, 
-            text="[BROOM] Limpeza David",
+            text="Limpeza David",
             font=('DejaVu Sans', 26, 'bold'),
             fg=self.theme['primary'],
             bg=self.theme['bg']
@@ -437,7 +437,7 @@ class LimpezaDavidApp:
         system_frame = tk.Frame(header_frame, bg=self.theme['bg_card'], padx=15, pady=10)
         system_frame.pack(side=tk.RIGHT)
         
-        system_info = f"[PC] {platform.system()} {platform.release()}"
+        system_info = f"{platform.system()} {platform.release()}"
         system_label = tk.Label(
             system_frame,
             text=system_info,
@@ -456,7 +456,7 @@ class LimpezaDavidApp:
         
         cat_title = tk.Label(
             categories_frame,
-            text="[FOLDER] Categorias de Limpeza",
+            text="Categorias de Limpeza",
             font=('DejaVu Sans', 13, 'bold'),
             fg=self.theme['primary'],
             bg=self.theme['bg_card']
@@ -494,7 +494,7 @@ class LimpezaDavidApp:
         
         self.rescan_btn = tk.Button(
             rescan_frame,
-            text="[REFRESH] Re-analisar",
+            text="Re-analisar",
             command=self._start_scan,
             font=('DejaVu Sans', 10),
             fg=self.theme['text_secondary'],
@@ -527,7 +527,7 @@ class LimpezaDavidApp:
         # Status
         self.status_label = tk.Label(
             progress_frame,
-            text="[SEARCH] Analisando sistema automaticamente...",
+            text="Analisando sistema automaticamente...",
             font=('DejaVu Sans', 11),
             fg=self.theme['text_secondary'],
             bg=self.theme['bg']
@@ -544,7 +544,7 @@ class LimpezaDavidApp:
         
         self.summary_label = tk.Label(
             left_footer,
-            text="[WAIT] Analisando...",
+            text="Analisando...",
             font=('DejaVu Sans', 14, 'bold'),
             fg=self.theme['success'],
             bg=self.theme['bg']
@@ -564,7 +564,7 @@ class LimpezaDavidApp:
         # Botão de limpar (GRANDE e bem visível)
         self.clean_btn = tk.Button(
             footer_frame,
-            text="[TRASH] LIMPAR SISTEMA",
+            text="LIMPAR SISTEMA",
             command=self._start_clean,
             font=('DejaVu Sans', 16, 'bold'),
             fg='white',
@@ -589,7 +589,7 @@ class LimpezaDavidApp:
         # Título da área de status
         status_title = tk.Label(
             status_frame,
-            text="[STATS] Resumo da Análise",
+            text="Resumo da Análise",
             font=('DejaVu Sans', 13, 'bold'),
             fg=self.theme['primary'],
             bg=self.theme['bg_card']
@@ -603,7 +603,7 @@ class LimpezaDavidApp:
         # Inicializa com mensagem de espera
         self.waiting_label = tk.Label(
             self.categories_result_frame,
-            text="[SEARCH] Analisando seu sistema...\n\nAguarde enquanto verificamos os arquivos temporários.",
+            text="Analisando seu sistema...\n\nAguarde enquanto verificamos os arquivos temporários.",
             font=('DejaVu Sans', 12),
             fg=self.theme['text_secondary'],
             bg=self.theme['bg_card'],
@@ -634,7 +634,7 @@ class LimpezaDavidApp:
         
         # Progresso
         if value > 0:
-            prog_width = int(width * value / 100)
+            prog_width = int(width value / 100)
             # Cor baseada no progresso
             color = self.theme['primary']
             self.progress_canvas.create_rectangle(
@@ -701,18 +701,18 @@ class LimpezaDavidApp:
     def _scan_thread(self, categories):
         """Thread de análise."""
         try:
-            self._update_status("[SEARCH] Analisando...")
+            self._update_status("Analisando...")
             
             total_size = 0
             total_files = 0
             self.scan_results = {}
             
             for i, cat_id in enumerate(categories):
-                progress = ((i + 1) / len(categories)) * 100
+                progress = ((i + 1) / len(categories)) 100
                 self._update_progress(progress)
                 
                 cat_info = self.cleaner.get_categories()[cat_id]
-                self._update_status(f"[SEARCH] Analisando: {cat_info['name']}...")
+                self._update_status(f"Analisando: {cat_info['name']}...")
                 
                 # Escaneia a categoria
                 files, size = self.cleaner.scan_category(cat_id)
@@ -729,10 +729,10 @@ class LimpezaDavidApp:
             self._update_results_display()
             
             self.summary_label.configure(
-                text=f"[DISK] Espaço a liberar: {format_size(total_size)} ({total_files} arquivos)"
+                text=f"Espaço a liberar: {format_size(total_size)} ({total_files} arquivos)"
             )
             
-            self._update_status("[OK] Análise concluída!")
+            self._update_status("Análise concluída!")
             self._update_progress(100)
             
             self.scan_complete = True
@@ -740,7 +740,7 @@ class LimpezaDavidApp:
             if total_files > 0:
                 self.clean_btn.configure(state=tk.NORMAL)
             else:
-                self.summary_label.configure(text="* Sistema limpo!")
+                self.summary_label.configure(text="Sistema limpo!")
                 
         except Exception as e:
             self.logger.error(f"Erro na análise: {e}")
@@ -829,7 +829,7 @@ class LimpezaDavidApp:
             "Confirmar Limpeza",
             f"Deseja remover {total_files} arquivos?\n"
             f"Espaço a ser liberado: {format_size(total_size)}\n\n"
-            f"[WARN] Esta ação não pode ser desfeita!"
+            f"Esta ação não pode ser desfeita!"
         )
         
         if not confirm:
@@ -846,7 +846,7 @@ class LimpezaDavidApp:
     def _clean_thread(self):
         """Thread de limpeza."""
         try:
-            self._update_status("[BROOM] Limpando...")
+            self._update_status("Limpando...")
             
             total_removed = 0
             total_size_freed = 0
@@ -855,7 +855,7 @@ class LimpezaDavidApp:
             categories = list(self.scan_results.keys())
             
             for i, cat_id in enumerate(categories):
-                progress = ((i + 1) / len(categories)) * 100
+                progress = ((i + 1) / len(categories)) 100
                 self._update_progress(progress)
                 
                 cat_info = self.cleaner.get_categories()[cat_id]
@@ -864,7 +864,7 @@ class LimpezaDavidApp:
                 if not files:
                     continue
                     
-                self._update_status(f"[BROOM] Limpando: {cat_info['name']}...")
+                self._update_status(f"Limpando: {cat_info['name']}...")
                 
                 # Remove os arquivos
                 removed, size_freed, errors = self.cleaner.clean_files(files)
@@ -874,10 +874,10 @@ class LimpezaDavidApp:
                 total_errors += errors
             
             self.summary_label.configure(
-                text=f"[OK] Liberado: {format_size(total_size_freed)}"
+                text=f"Liberado: {format_size(total_size_freed)}"
             )
             
-            self._update_status("[OK] Limpeza concluída!")
+            self._update_status("Limpeza concluída!")
             self._update_progress(100)
             
             # Limpa os resultados
@@ -887,13 +887,13 @@ class LimpezaDavidApp:
             # Mensagem de sucesso
             error_msg = ""
             if total_errors > 0:
-                error_msg = f"\n\n[WARN] {total_errors} arquivo(s) não puderam ser removidos\n(em uso ou protegidos)"
+                error_msg = f"\n\n{total_errors} arquivo(s) não puderam ser removidos\n(em uso ou protegidos)"
             
             messagebox.showinfo(
                 "Limpeza Concluída",
-                f"[OK] Limpeza realizada com sucesso!\n\n"
-                f"[FILES] Arquivos removidos: {total_removed}\n"
-                f"[DISK] Espaço liberado: {format_size(total_size_freed)}{error_msg}"
+                f"Limpeza realizada com sucesso!\n\n"
+                f"Arquivos removidos: {total_removed}\n"
+                f"Espaço liberado: {format_size(total_size_freed)}{error_msg}"
             )
             
             # Reinicia análise automática após limpeza

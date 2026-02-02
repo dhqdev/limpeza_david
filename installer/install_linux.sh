@@ -468,13 +468,29 @@ EOF
         update-desktop-database "$APPLICATIONS_DIR" 2>/dev/null || true
     fi
     
-    log_success "Atalho criado em: $DESKTOP_FILE"
-    log_success "Também disponível no menu de aplicativos"
+    # === SOLUÇÃO ALTERNATIVA: Script Shell direto (funciona sem "permitir execução") ===
+    # Remove o .desktop da área de trabalho (que precisa de permissão) 
+    rm -f "$DESKTOP_FILE"
     
-    # Instruções para o usuário caso não funcione
-    log_info "Se o atalho não abrir ao clicar:"
-    log_info "  1. Clique com botão direito no ícone"
-    log_info "  2. Selecione 'Permitir execução' ou 'Confiar neste aplicativo'"
+    # Cria um script shell executável diretamente (não precisa de "trusted")
+    SHELL_LAUNCHER="$DESKTOP_DIR/Limpeza David"
+    cat > "$SHELL_LAUNCHER" << 'LAUNCHER_SCRIPT'
+#!/bin/bash
+cd "$HOME/.local/share/limpeza_david"
+exec python3 run.py
+LAUNCHER_SCRIPT
+    
+    # Torna executável
+    if [[ -x /bin/chmod ]]; then
+        /bin/chmod +x "$SHELL_LAUNCHER"
+    elif [[ -x /usr/bin/chmod ]]; then
+        /usr/bin/chmod +x "$SHELL_LAUNCHER"
+    else
+        chmod +x "$SHELL_LAUNCHER" 2>/dev/null || true
+    fi
+    
+    log_success "Atalho criado em: $SHELL_LAUNCHER"
+    log_success "Também disponível no menu de aplicativos (pesquise 'Limpeza David')"
 }
 
 # === VERIFICAÇÃO FINAL ===
