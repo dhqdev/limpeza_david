@@ -92,16 +92,22 @@ function Install-Git {
     Write-ColorOutput "📥 Instalando Git..." "Yellow"
     
     try {
-        # Tenta usar winget primeiro
+        # Tenta usar winget primeiro (com flags para não interagir)
         if (Get-Command winget -ErrorAction SilentlyContinue) {
-            winget install --id Git.Git -e --source winget --accept-source-agreements --accept-package-agreements
+            Write-ColorOutput "  Usando winget..." "Gray"
+            $process = Start-Process -FilePath "winget" -ArgumentList "install", "--id", "Git.Git", "-e", "--source", "winget", "--accept-source-agreements", "--accept-package-agreements", "--silent" -Wait -PassThru -NoNewWindow
+            
+            if ($process.ExitCode -ne 0) {
+                throw "winget falhou"
+            }
         }
         else {
             # Usa Chocolatey como fallback
             if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
                 Install-Chocolatey
             }
-            choco install git -y
+            Write-ColorOutput "  Usando Chocolatey..." "Gray"
+            $process = Start-Process -FilePath "choco" -ArgumentList "install", "git", "-y", "--no-progress" -Wait -PassThru -NoNewWindow
         }
         
         # Atualiza o PATH
@@ -141,16 +147,22 @@ function Install-Python {
     Write-ColorOutput "📥 Instalando Python..." "Yellow"
     
     try {
-        # Tenta usar winget primeiro
+        # Tenta usar winget primeiro (com flags para não interagir)
         if (Get-Command winget -ErrorAction SilentlyContinue) {
-            winget install --id Python.Python.3.11 -e --source winget --accept-source-agreements --accept-package-agreements
+            Write-ColorOutput "  Usando winget..." "Gray"
+            $process = Start-Process -FilePath "winget" -ArgumentList "install", "--id", "Python.Python.3.11", "-e", "--source", "winget", "--accept-source-agreements", "--accept-package-agreements", "--silent" -Wait -PassThru -NoNewWindow
+            
+            if ($process.ExitCode -ne 0) {
+                throw "winget falhou"
+            }
         }
         else {
             # Usa Chocolatey como fallback
             if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
                 Install-Chocolatey
             }
-            choco install python3 -y
+            Write-ColorOutput "  Usando Chocolatey..." "Gray"
+            $process = Start-Process -FilePath "choco" -ArgumentList "install", "python3", "-y", "--no-progress" -Wait -PassThru -NoNewWindow
         }
         
         # Atualiza o PATH

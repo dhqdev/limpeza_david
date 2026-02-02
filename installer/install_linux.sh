@@ -372,7 +372,10 @@ create_desktop_shortcut() {
         ICON_PATH="utilities-system-monitor"
     fi
     
-    # Cria o arquivo .desktop
+    # Obtém o caminho absoluto do Python
+    PYTHON_FULL_PATH=$(which $PYTHON_CMD)
+    
+    # Cria o arquivo .desktop com Path e Exec corretos
     cat > "$DESKTOP_FILE" << EOF
 [Desktop Entry]
 Version=1.0
@@ -380,7 +383,8 @@ Type=Application
 Name=Limpeza David
 GenericName=Limpador de Sistema
 Comment=Ferramenta de limpeza de sistema - Remove arquivos temporários, cache e lixo
-Exec=$PYTHON_CMD $INSTALL_DIR/run.py
+Exec=bash -c 'cd "$INSTALL_DIR" && "$PYTHON_FULL_PATH" "$INSTALL_DIR/run.py"'
+Path=$INSTALL_DIR
 Icon=$ICON_PATH
 Terminal=false
 Categories=Utility;System;
@@ -392,9 +396,20 @@ EOF
     # IMPORTANTE: Torna o arquivo .desktop executável
     chmod +x "$DESKTOP_FILE"
     
-    # Marca como confiável no GNOME (necessário para alguns sistemas)
+    # Marca como confiável no GNOME/KDE (necessário para executar)
     if command -v gio &> /dev/null; then
         gio set "$DESKTOP_FILE" metadata::trusted true 2>/dev/null || true
+    fi
+    
+    # Para KDE Plasma
+    if command -v kwriteconfig5 &> /dev/null; then
+        kwriteconfig5 --file "$DESKTOP_FILE" --group "Desktop Entry" --key "X-KDE-SubstituteUID" "false" 2>/dev/null || true
+    fi
+    
+    # Remove atributo de quarentena (se existir)
+    if command -v xattr &> /dev/null; then
+        xattr -d user.xdg.origin.url "$DESKTOP_FILE" 2>/dev/null || true
+        xattr -d com.apple.quarantine "$DESKTOP_FILE" 2>/dev/null || true
     fi
     
     # Também copia para applications (menu do sistema)
@@ -403,6 +418,11 @@ EOF
     cp "$DESKTOP_FILE" "$APPLICATIONS_DIR/${APP_NAME}.desktop"
     chmod +x "$APPLICATIONS_DIR/${APP_NAME}.desktop"
     
+    # Marca como confiável também no menu
+    if command -v gio &> /dev/null; then
+        gio set "$APPLICATIONS_DIR/${APP_NAME}.desktop" metadata::trusted true 2>/dev/null || true
+    fi
+    
     # Atualiza o cache do desktop database
     if command -v update-desktop-database &> /dev/null; then
         update-desktop-database "$APPLICATIONS_DIR" 2>/dev/null || true
@@ -410,6 +430,11 @@ EOF
     
     log_success "Atalho criado em: $DESKTOP_FILE"
     log_success "Também disponível no menu de aplicativos"
+    
+    # Instruções para o usuário caso não funcione
+    log_info "Se o atalho não abrir ao clicar:"
+    log_info "  1. Clique com botão direito no ícone"
+    log_info "  2. Selecione 'Permitir execução' ou 'Confiar neste aplicativo'"
 }
 
 # === VERIFICAÇÃO FINAL ===

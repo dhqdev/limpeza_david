@@ -579,51 +579,41 @@ class LimpezaDavidApp:
         )
         self.clean_btn.pack(side=tk.RIGHT)
         
-        # === Área de Log ===
-        log_outer = tk.Frame(main_frame, bg=self.theme['border'], padx=1, pady=1)
-        log_outer.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
+        # === Área de Status Simplificada (sem logs detalhados) ===
+        status_outer = tk.Frame(main_frame, bg=self.theme['border'], padx=1, pady=1)
+        status_outer.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
         
-        log_frame = tk.Frame(log_outer, bg=self.theme['bg_card'], padx=15, pady=15)
-        log_frame.pack(fill=tk.BOTH, expand=True)
+        status_frame = tk.Frame(status_outer, bg=self.theme['bg_card'], padx=20, pady=20)
+        status_frame.pack(fill=tk.BOTH, expand=True)
         
-        log_title = tk.Label(
-            log_frame,
-            text="📋 Log de Operações",
-            font=('Segoe UI', 12, 'bold'),
+        # Título da área de status
+        status_title = tk.Label(
+            status_frame,
+            text="📊 Resumo da Análise",
+            font=('Segoe UI', 13, 'bold'),
             fg=self.theme['primary'],
             bg=self.theme['bg_card']
         )
-        log_title.pack(anchor='w', pady=(0, 10))
+        status_title.pack(anchor='w', pady=(0, 15))
         
-        self.log_text = scrolledtext.ScrolledText(
-            log_frame,
-            height=8,
-            font=('Consolas', 10),
-            wrap=tk.WORD,
-            bg='#0d1117',
-            fg='#c9d1d9',
-            insertbackground='white',
-            relief=tk.FLAT,
-            padx=10,
-            pady=10
+        # Frame para cards de categorias
+        self.categories_result_frame = tk.Frame(status_frame, bg=self.theme['bg_card'])
+        self.categories_result_frame.pack(fill=tk.BOTH, expand=True)
+        
+        # Inicializa com mensagem de espera
+        self.waiting_label = tk.Label(
+            self.categories_result_frame,
+            text="🔍 Analisando seu sistema...\n\nAguarde enquanto verificamos os arquivos temporários.",
+            font=('Segoe UI', 12),
+            fg=self.theme['text_secondary'],
+            bg=self.theme['bg_card'],
+            justify=tk.CENTER
         )
-        self.log_text.pack(fill=tk.BOTH, expand=True)
+        self.waiting_label.pack(expand=True, pady=50)
         
-        # Tags para colorir o log
-        self.log_text.tag_configure('info', foreground='#58a6ff')
-        self.log_text.tag_configure('success', foreground='#3fb950')
-        self.log_text.tag_configure('warning', foreground='#d29922')
-        self.log_text.tag_configure('error', foreground='#f85149')
-        self.log_text.tag_configure('header', foreground='#bc8cff', font=('Consolas', 10, 'bold'))
-        
-        # Log inicial
-        self._log("═" * 55, 'header')
-        self._log("🧹 Limpeza David - Limpador de Sistema Inteligente", 'header')
-        self._log(f"📅 {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}", 'info')
-        self._log(f"💻 Sistema: {platform.system()} {platform.release()}", 'info')
-        self._log("═" * 55, 'header')
-        self._log("")
-        self._log("🔄 Iniciando análise automática do sistema...", 'info')
+        # Log oculto (para manter compatibilidade, mas não visível)
+        self.log_text = tk.Text(main_frame, height=1, width=1)
+        self.log_text.pack_forget()  # Esconde completamente
         
     def _update_progress_bar(self, value):
         """Atualiza a barra de progresso personalizada."""
@@ -658,14 +648,9 @@ class LimpezaDavidApp:
             )
         
     def _log(self, message, tag=None):
-        """Adiciona mensagem ao log."""
-        self.log_text.configure(state=tk.NORMAL)
-        if tag:
-            self.log_text.insert(tk.END, message + "\n", tag)
-        else:
-            self.log_text.insert(tk.END, message + "\n")
-        self.log_text.see(tk.END)
-        self.log_text.configure(state=tk.DISABLED)
+        """Adiciona mensagem ao log (apenas para debug interno)."""
+        # Log silencioso - não mostra na interface
+        self.logger.debug(message)
         
     def _update_status(self, message):
         """Atualiza o status."""
@@ -716,8 +701,6 @@ class LimpezaDavidApp:
     def _scan_thread(self, categories):
         """Thread de análise."""
         try:
-            self._log("")
-            self._log("🔍 Iniciando análise do sistema...", 'header')
             self._update_status("🔍 Analisando...")
             
             total_size = 0
@@ -729,7 +712,6 @@ class LimpezaDavidApp:
                 self._update_progress(progress)
                 
                 cat_info = self.cleaner.get_categories()[cat_id]
-                self._log(f"  📂 Analisando: {cat_info['name']}...", 'info')
                 self._update_status(f"🔍 Analisando: {cat_info['name']}...")
                 
                 # Escaneia a categoria
@@ -742,15 +724,9 @@ class LimpezaDavidApp:
                 
                 total_size += size
                 total_files += len(files)
-                
-                self._log(f"    └─ {len(files)} arquivos ({format_size(size)})", 'success')
-                
-            self._log("")
-            self._log("═" * 55, 'header')
-            self._log(f"📊 RESUMO DA ANÁLISE:", 'header')
-            self._log(f"   Total de arquivos: {total_files}", 'success')
-            self._log(f"   Espaço a liberar: {format_size(total_size)}", 'success')
-            self._log("═" * 55, 'header')
+            
+            # Atualiza a interface com os resultados visuais
+            self._update_results_display()
             
             self.summary_label.configure(
                 text=f"💾 Espaço a liberar: {format_size(total_size)} ({total_files} arquivos)"
@@ -763,19 +739,82 @@ class LimpezaDavidApp:
             
             if total_files > 0:
                 self.clean_btn.configure(state=tk.NORMAL)
-                self._log("")
-                self._log("✅ Clique em 'LIMPAR SISTEMA' para remover os arquivos.", 'info')
             else:
-                self._log("")
-                self._log("✨ Sistema já está limpo! Nenhum arquivo para remover.", 'success')
                 self.summary_label.configure(text="✨ Sistema limpo!")
                 
         except Exception as e:
-            self._log(f"❌ Erro durante análise: {str(e)}", 'error')
             self.logger.error(f"Erro na análise: {e}")
         finally:
             self.is_scanning = False
             self.rescan_btn.configure(state=tk.NORMAL)
+    
+    def _update_results_display(self):
+        """Atualiza a exibição visual dos resultados."""
+        # Limpa o frame de resultados
+        for widget in self.categories_result_frame.winfo_children():
+            widget.destroy()
+        
+        if not self.scan_results:
+            return
+        
+        # Cria cards para cada categoria com resultados
+        categories = self.cleaner.get_categories()
+        
+        row = 0
+        col = 0
+        
+        for cat_id, result in self.scan_results.items():
+            if cat_id not in categories:
+                continue
+                
+            cat_info = categories[cat_id]
+            files_count = len(result['files'])
+            size = result['size']
+            
+            # Card da categoria
+            card = tk.Frame(
+                self.categories_result_frame,
+                bg=self.theme['bg_secondary'],
+                padx=15,
+                pady=12
+            )
+            card.grid(row=row, column=col, padx=8, pady=8, sticky='nsew')
+            
+            # Ícone e nome
+            header = tk.Label(
+                card,
+                text=f"{cat_info['icon']} {cat_info['name']}",
+                font=('Segoe UI', 11, 'bold'),
+                fg=self.theme['text'],
+                bg=self.theme['bg_secondary']
+            )
+            header.pack(anchor='w')
+            
+            # Quantidade e tamanho
+            if files_count > 0:
+                info_text = f"{files_count} arquivos • {format_size(size)}"
+                info_color = self.theme['warning'] if size > 100*1024*1024 else self.theme['text_secondary']
+            else:
+                info_text = "✓ Limpo"
+                info_color = self.theme['success']
+            
+            info = tk.Label(
+                card,
+                text=info_text,
+                font=('Segoe UI', 10),
+                fg=info_color,
+                bg=self.theme['bg_secondary']
+            )
+            info.pack(anchor='w', pady=(5, 0))
+            
+            col += 1
+            if col >= 3:
+                col = 0
+                row += 1
+        
+        # Configura o grid para expandir
+        for i in range(3):
+            self.categories_result_frame.columnconfigure(i, weight=1)
             
     def _start_clean(self):
         """Inicia a limpeza em uma thread separada."""
@@ -807,8 +846,6 @@ class LimpezaDavidApp:
     def _clean_thread(self):
         """Thread de limpeza."""
         try:
-            self._log("")
-            self._log("🗑️ Iniciando limpeza...", 'header')
             self._update_status("🧹 Limpando...")
             
             total_removed = 0
@@ -827,7 +864,6 @@ class LimpezaDavidApp:
                 if not files:
                     continue
                     
-                self._log(f"  🧹 Limpando: {cat_info['name']}...", 'info')
                 self._update_status(f"🧹 Limpando: {cat_info['name']}...")
                 
                 # Remove os arquivos
@@ -836,19 +872,6 @@ class LimpezaDavidApp:
                 total_removed += removed
                 total_size_freed += size_freed
                 total_errors += errors
-                
-                self._log(f"    └─ {removed} removidos ({format_size(size_freed)})", 'success')
-                if errors > 0:
-                    self._log(f"    └─ {errors} erros (arquivos em uso ou protegidos)", 'warning')
-                    
-            self._log("")
-            self._log("═" * 55, 'header')
-            self._log(f"✅ LIMPEZA CONCLUÍDA!", 'header')
-            self._log(f"   Arquivos removidos: {total_removed}", 'success')
-            self._log(f"   Espaço liberado: {format_size(total_size_freed)}", 'success')
-            if total_errors > 0:
-                self._log(f"   Erros: {total_errors}", 'warning')
-            self._log("═" * 55, 'header')
             
             self.summary_label.configure(
                 text=f"✅ Liberado: {format_size(total_size_freed)}"
@@ -861,21 +884,24 @@ class LimpezaDavidApp:
             self.scan_results = {}
             self.scan_complete = False
             
+            # Mensagem de sucesso
+            error_msg = ""
+            if total_errors > 0:
+                error_msg = f"\n\n⚠️ {total_errors} arquivo(s) não puderam ser removidos\n(em uso ou protegidos)"
+            
             messagebox.showinfo(
                 "Limpeza Concluída",
                 f"✅ Limpeza realizada com sucesso!\n\n"
-                f"Arquivos removidos: {total_removed}\n"
-                f"Espaço liberado: {format_size(total_size_freed)}"
+                f"📁 Arquivos removidos: {total_removed}\n"
+                f"💾 Espaço liberado: {format_size(total_size_freed)}{error_msg}"
             )
             
             # Reinicia análise automática após limpeza
-            self._log("")
-            self._log("🔄 Reiniciando análise...", 'info')
             self.root.after(1000, self._start_scan)
             
         except Exception as e:
-            self._log(f"❌ Erro durante limpeza: {str(e)}", 'error')
             self.logger.error(f"Erro na limpeza: {e}")
+            messagebox.showerror("Erro", f"Ocorreu um erro durante a limpeza:\n{str(e)}")
         finally:
             self.is_cleaning = False
             self.rescan_btn.configure(state=tk.NORMAL)
