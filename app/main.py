@@ -87,8 +87,8 @@ class SplashScreen:
         # Título
         title_label = tk.Label(
             inner_frame,
-            text="🧹 Limpeza David",
-            font=('Segoe UI', 28, 'bold'),
+            text="[BROOM] Limpeza David",
+            font=('DejaVu Sans', 28, 'bold'),
             fg='#6366f1',
             bg='#1a1a2e'
         )
@@ -98,7 +98,7 @@ class SplashScreen:
         subtitle_label = tk.Label(
             inner_frame,
             text="Limpador de Sistema Inteligente",
-            font=('Segoe UI', 12),
+            font=('DejaVu Sans', 12),
             fg='#8b8b9e',
             bg='#1a1a2e'
         )
@@ -122,7 +122,7 @@ class SplashScreen:
         self.status_label = tk.Label(
             inner_frame,
             text="Iniciando...",
-            font=('Segoe UI', 10),
+            font=('DejaVu Sans', 10),
             fg='#6b7280',
             bg='#1a1a2e'
         )
@@ -206,8 +206,8 @@ class SplashScreen:
             star_size = 2 + math.sin(angle * 0.1 + i) * 1
             self.canvas.create_text(
                 sx, sy,
-                text="✨",
-                font=('Segoe UI', int(8 + star_size)),
+                text="*",
+                font=('DejaVu Sans', int(8 + star_size)),
                 fill='#fbbf24'
             )
         
@@ -262,7 +262,7 @@ class SplashScreen:
             self.root.after(50, self._animate)
         else:
             # Carregamento completo
-            self.status_label.config(text="✅ Pronto!")
+            self.status_label.config(text="[OK] Pronto!")
             self._update_progress_bar()
             self.root.after(500, self._finish)
     
@@ -362,32 +362,32 @@ class LimpezaDavidApp:
         style.configure('Card.TFrame', background=self.theme['bg_card'])
         
         style.configure('Title.TLabel', 
-                       font=('Segoe UI', 24, 'bold'),
+                       font=('DejaVu Sans', 24, 'bold'),
                        foreground=self.theme['primary'],
                        background=self.theme['bg'])
         
         style.configure('Header.TLabel',
-                       font=('Segoe UI', 14, 'bold'),
+                       font=('DejaVu Sans', 14, 'bold'),
                        foreground=self.theme['text'],
                        background=self.theme['bg'])
         
         style.configure('Info.TLabel',
-                       font=('Segoe UI', 11),
+                       font=('DejaVu Sans', 11),
                        foreground=self.theme['text_secondary'],
                        background=self.theme['bg'])
         
         style.configure('Success.TLabel',
-                       font=('Segoe UI', 13, 'bold'),
+                       font=('DejaVu Sans', 13, 'bold'),
                        foreground=self.theme['success'],
                        background=self.theme['bg'])
                        
         style.configure('Card.TLabel',
-                       font=('Segoe UI', 11),
+                       font=('DejaVu Sans', 11),
                        foreground=self.theme['text'],
                        background=self.theme['bg_card'])
                        
         style.configure('Dark.TCheckbutton',
-                       font=('Segoe UI', 11),
+                       font=('DejaVu Sans', 11),
                        foreground=self.theme['text'],
                        background=self.theme['bg_card'])
         
@@ -396,7 +396,7 @@ class LimpezaDavidApp:
                        background=self.theme['bg_card'],
                        foreground=self.theme['text'])
         style.configure('Card.TLabelframe.Label',
-                       font=('Segoe UI', 12, 'bold'),
+                       font=('DejaVu Sans', 12, 'bold'),
                        foreground=self.theme['primary'],
                        background=self.theme['bg_card'])
                        
@@ -417,8 +417,8 @@ class LimpezaDavidApp:
         
         title_label = tk.Label(
             title_frame, 
-            text="🧹 Limpeza David",
-            font=('Segoe UI', 26, 'bold'),
+            text="[BROOM] Limpeza David",
+            font=('DejaVu Sans', 26, 'bold'),
             fg=self.theme['primary'],
             bg=self.theme['bg']
         )
@@ -427,7 +427,7 @@ class LimpezaDavidApp:
         subtitle_label = tk.Label(
             title_frame,
             text="Libere espaço e otimize seu sistema",
-            font=('Segoe UI', 11),
+            font=('DejaVu Sans', 11),
             fg=self.theme['text_secondary'],
             bg=self.theme['bg']
         )
@@ -437,11 +437,11 @@ class LimpezaDavidApp:
         system_frame = tk.Frame(header_frame, bg=self.theme['bg_card'], padx=15, pady=10)
         system_frame.pack(side=tk.RIGHT)
         
-        system_info = f"💻 {platform.system()} {platform.release()}"
+        system_info = f"[PC] {platform.system()} {platform.release()}"
         system_label = tk.Label(
             system_frame,
             text=system_info,
-            font=('Segoe UI', 10),
+            font=('DejaVu Sans', 10),
             fg=self.theme['text_secondary'],
             bg=self.theme['bg_card']
         )
@@ -456,8 +456,8 @@ class LimpezaDavidApp:
         
         cat_title = tk.Label(
             categories_frame,
-            text="📂 Categorias de Limpeza",
-            font=('Segoe UI', 13, 'bold'),
+            text="[FOLDER] Categorias de Limpeza",
+            font=('DejaVu Sans', 13, 'bold'),
             fg=self.theme['primary'],
             bg=self.theme['bg_card']
         )
@@ -477,7 +477,7 @@ class LimpezaDavidApp:
                 checkbox_frame,
                 text=f"{cat_info['icon']} {cat_info['name']}",
                 variable=var,
-                font=('Segoe UI', 11),
+                font=('DejaVu Sans', 11),
                 fg=self.theme['text'],
                 bg=self.theme['bg_card'],
                 selectcolor=self.theme['bg_secondary'],
@@ -494,9 +494,9 @@ class LimpezaDavidApp:
         
         self.rescan_btn = tk.Button(
             rescan_frame,
-            text="🔄 Re-analisar",
+            text="[REFRESH] Re-analisar",
             command=self._start_scan,
-            font=('Segoe UI', 10),
+            font=('DejaVu Sans', 10),
             fg=self.theme['text_secondary'],
             bg=self.theme['bg_secondary'],
             activebackground=self.theme['primary'],
@@ -527,8 +527,8 @@ class LimpezaDavidApp:
         # Status
         self.status_label = tk.Label(
             progress_frame,
-            text="🔍 Analisando sistema automaticamente...",
-            font=('Segoe UI', 11),
+            text="[SEARCH] Analisando sistema automaticamente...",
+            font=('DejaVu Sans', 11),
             fg=self.theme['text_secondary'],
             bg=self.theme['bg']
         )
@@ -544,8 +544,8 @@ class LimpezaDavidApp:
         
         self.summary_label = tk.Label(
             left_footer,
-            text="⏳ Analisando...",
-            font=('Segoe UI', 14, 'bold'),
+            text="[WAIT] Analisando...",
+            font=('DejaVu Sans', 14, 'bold'),
             fg=self.theme['success'],
             bg=self.theme['bg']
         )
@@ -555,7 +555,7 @@ class LimpezaDavidApp:
         version_label = tk.Label(
             left_footer,
             text="v1.0.0",
-            font=('Segoe UI', 9),
+            font=('DejaVu Sans', 9),
             fg=self.theme['text_secondary'],
             bg=self.theme['bg']
         )
@@ -564,9 +564,9 @@ class LimpezaDavidApp:
         # Botão de limpar (GRANDE e bem visível)
         self.clean_btn = tk.Button(
             footer_frame,
-            text="🗑️ LIMPAR SISTEMA",
+            text="[TRASH] LIMPAR SISTEMA",
             command=self._start_clean,
-            font=('Segoe UI', 16, 'bold'),
+            font=('DejaVu Sans', 16, 'bold'),
             fg='white',
             bg=self.theme['primary'],
             activebackground=self.theme['primary_hover'],
@@ -589,8 +589,8 @@ class LimpezaDavidApp:
         # Título da área de status
         status_title = tk.Label(
             status_frame,
-            text="📊 Resumo da Análise",
-            font=('Segoe UI', 13, 'bold'),
+            text="[STATS] Resumo da Análise",
+            font=('DejaVu Sans', 13, 'bold'),
             fg=self.theme['primary'],
             bg=self.theme['bg_card']
         )
@@ -603,8 +603,8 @@ class LimpezaDavidApp:
         # Inicializa com mensagem de espera
         self.waiting_label = tk.Label(
             self.categories_result_frame,
-            text="🔍 Analisando seu sistema...\n\nAguarde enquanto verificamos os arquivos temporários.",
-            font=('Segoe UI', 12),
+            text="[SEARCH] Analisando seu sistema...\n\nAguarde enquanto verificamos os arquivos temporários.",
+            font=('DejaVu Sans', 12),
             fg=self.theme['text_secondary'],
             bg=self.theme['bg_card'],
             justify=tk.CENTER
@@ -701,7 +701,7 @@ class LimpezaDavidApp:
     def _scan_thread(self, categories):
         """Thread de análise."""
         try:
-            self._update_status("🔍 Analisando...")
+            self._update_status("[SEARCH] Analisando...")
             
             total_size = 0
             total_files = 0
@@ -712,7 +712,7 @@ class LimpezaDavidApp:
                 self._update_progress(progress)
                 
                 cat_info = self.cleaner.get_categories()[cat_id]
-                self._update_status(f"🔍 Analisando: {cat_info['name']}...")
+                self._update_status(f"[SEARCH] Analisando: {cat_info['name']}...")
                 
                 # Escaneia a categoria
                 files, size = self.cleaner.scan_category(cat_id)
@@ -729,10 +729,10 @@ class LimpezaDavidApp:
             self._update_results_display()
             
             self.summary_label.configure(
-                text=f"💾 Espaço a liberar: {format_size(total_size)} ({total_files} arquivos)"
+                text=f"[DISK] Espaço a liberar: {format_size(total_size)} ({total_files} arquivos)"
             )
             
-            self._update_status("✅ Análise concluída!")
+            self._update_status("[OK] Análise concluída!")
             self._update_progress(100)
             
             self.scan_complete = True
@@ -740,7 +740,7 @@ class LimpezaDavidApp:
             if total_files > 0:
                 self.clean_btn.configure(state=tk.NORMAL)
             else:
-                self.summary_label.configure(text="✨ Sistema limpo!")
+                self.summary_label.configure(text="* Sistema limpo!")
                 
         except Exception as e:
             self.logger.error(f"Erro na análise: {e}")
@@ -784,7 +784,7 @@ class LimpezaDavidApp:
             header = tk.Label(
                 card,
                 text=f"{cat_info['icon']} {cat_info['name']}",
-                font=('Segoe UI', 11, 'bold'),
+                font=('DejaVu Sans', 11, 'bold'),
                 fg=self.theme['text'],
                 bg=self.theme['bg_secondary']
             )
@@ -801,7 +801,7 @@ class LimpezaDavidApp:
             info = tk.Label(
                 card,
                 text=info_text,
-                font=('Segoe UI', 10),
+                font=('DejaVu Sans', 10),
                 fg=info_color,
                 bg=self.theme['bg_secondary']
             )
@@ -829,7 +829,7 @@ class LimpezaDavidApp:
             "Confirmar Limpeza",
             f"Deseja remover {total_files} arquivos?\n"
             f"Espaço a ser liberado: {format_size(total_size)}\n\n"
-            f"⚠️ Esta ação não pode ser desfeita!"
+            f"[WARN] Esta ação não pode ser desfeita!"
         )
         
         if not confirm:
@@ -846,7 +846,7 @@ class LimpezaDavidApp:
     def _clean_thread(self):
         """Thread de limpeza."""
         try:
-            self._update_status("🧹 Limpando...")
+            self._update_status("[BROOM] Limpando...")
             
             total_removed = 0
             total_size_freed = 0
@@ -864,7 +864,7 @@ class LimpezaDavidApp:
                 if not files:
                     continue
                     
-                self._update_status(f"🧹 Limpando: {cat_info['name']}...")
+                self._update_status(f"[BROOM] Limpando: {cat_info['name']}...")
                 
                 # Remove os arquivos
                 removed, size_freed, errors = self.cleaner.clean_files(files)
@@ -874,10 +874,10 @@ class LimpezaDavidApp:
                 total_errors += errors
             
             self.summary_label.configure(
-                text=f"✅ Liberado: {format_size(total_size_freed)}"
+                text=f"[OK] Liberado: {format_size(total_size_freed)}"
             )
             
-            self._update_status("✅ Limpeza concluída!")
+            self._update_status("[OK] Limpeza concluída!")
             self._update_progress(100)
             
             # Limpa os resultados
@@ -887,13 +887,13 @@ class LimpezaDavidApp:
             # Mensagem de sucesso
             error_msg = ""
             if total_errors > 0:
-                error_msg = f"\n\n⚠️ {total_errors} arquivo(s) não puderam ser removidos\n(em uso ou protegidos)"
+                error_msg = f"\n\n[WARN] {total_errors} arquivo(s) não puderam ser removidos\n(em uso ou protegidos)"
             
             messagebox.showinfo(
                 "Limpeza Concluída",
-                f"✅ Limpeza realizada com sucesso!\n\n"
-                f"📁 Arquivos removidos: {total_removed}\n"
-                f"💾 Espaço liberado: {format_size(total_size_freed)}{error_msg}"
+                f"[OK] Limpeza realizada com sucesso!\n\n"
+                f"[FILES] Arquivos removidos: {total_removed}\n"
+                f"[DISK] Espaço liberado: {format_size(total_size_freed)}{error_msg}"
             )
             
             # Reinicia análise automática após limpeza

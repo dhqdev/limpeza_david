@@ -375,7 +375,17 @@ create_desktop_shortcut() {
     # Obtém o caminho absoluto do Python
     PYTHON_FULL_PATH=$(which $PYTHON_CMD)
     
-    # Cria o arquivo .desktop com Path e Exec corretos
+    # Cria um script de lançamento (sempre funciona, não precisa de "trusted")
+    LAUNCHER_SCRIPT="$INSTALL_DIR/launch.sh"
+    cat > "$LAUNCHER_SCRIPT" << 'LAUNCHER_EOF'
+#!/bin/bash
+cd "$(dirname "$0")"
+SCRIPT_DIR="$(pwd)"
+LAUNCHER_EOF
+    echo "exec \"$PYTHON_FULL_PATH\" \"\$SCRIPT_DIR/run.py\"" >> "$LAUNCHER_SCRIPT"
+    /bin/chmod +x "$LAUNCHER_SCRIPT" 2>/dev/null || chmod +x "$LAUNCHER_SCRIPT" 2>/dev/null || true
+    
+    # Cria o arquivo .desktop apontando para o script de lançamento
     cat > "$DESKTOP_FILE" << EOF
 [Desktop Entry]
 Version=1.0
@@ -383,7 +393,7 @@ Type=Application
 Name=Limpeza David
 GenericName=Limpador de Sistema
 Comment=Ferramenta de limpeza de sistema - Remove arquivos temporários, cache e lixo
-Exec=bash -c 'cd "$INSTALL_DIR" && "$PYTHON_FULL_PATH" "$INSTALL_DIR/run.py"'
+Exec=$LAUNCHER_SCRIPT
 Path=$INSTALL_DIR
 Icon=$ICON_PATH
 Terminal=false
@@ -394,11 +404,32 @@ StartupWMClass=limpeza_david
 EOF
     
     # IMPORTANTE: Torna o arquivo .desktop executável
-    chmod +x "$DESKTOP_FILE"
+    # Usa múltiplas abordagens para garantir que funcione
+    if command -v chmod &> /dev/null; then
+        chmod +x "$DESKTOP_FILE" 2>/dev/null || true
+    fi
+    # Fallback: tenta usar o caminho absoluto do chmod
+    if [[ -x /bin/chmod ]]; then
+        /bin/chmod +x "$DESKTOP_FILE" 2>/dev/null || true
+    elif [[ -x /usr/bin/chmod ]]; then
+        /usr/bin/chmod +x "$DESKTOP_FILE" 2>/dev/null || true
+    fi
     
-    # Marca como confiável no GNOME/KDE (necessário para executar)
+    # Marca como confiável no GNOME (necessário para executar ao clicar)
     if command -v gio &> /dev/null; then
         gio set "$DESKTOP_FILE" metadata::trusted true 2>/dev/null || true
+        # Método alternativo para GNOME 3.28+
+        gio set "$DESKTOP_FILE" "metadata::trusted" "yes" 2>/dev/null || true
+    fi
+    
+    # Para GNOME mais antigo com gvfs
+    if command -v gvfs-set-attribute &> /dev/null; then
+        gvfs-set-attribute "$DESKTOP_FILE" metadata::trusted true 2>/dev/null || true
+    fi
+    
+    # Usa dbus diretamente como fallback adicional para GNOME
+    if command -v dbus-launch &> /dev/null; then
+        dbus-launch gio set "$DESKTOP_FILE" metadata::trusted true 2>/dev/null || true
     fi
     
     # Para KDE Plasma
@@ -416,7 +447,16 @@ EOF
     APPLICATIONS_DIR="$HOME/.local/share/applications"
     mkdir -p "$APPLICATIONS_DIR"
     cp "$DESKTOP_FILE" "$APPLICATIONS_DIR/${APP_NAME}.desktop"
-    chmod +x "$APPLICATIONS_DIR/${APP_NAME}.desktop"
+    
+    # Torna executável também no menu de aplicativos
+    if command -v chmod &> /dev/null; then
+        chmod +x "$APPLICATIONS_DIR/${APP_NAME}.desktop" 2>/dev/null || true
+    fi
+    if [[ -x /bin/chmod ]]; then
+        /bin/chmod +x "$APPLICATIONS_DIR/${APP_NAME}.desktop" 2>/dev/null || true
+    elif [[ -x /usr/bin/chmod ]]; then
+        /usr/bin/chmod +x "$APPLICATIONS_DIR/${APP_NAME}.desktop" 2>/dev/null || true
+    fi
     
     # Marca como confiável também no menu
     if command -v gio &> /dev/null; then
@@ -525,10 +565,6 @@ main() {
     echo -e "  ${BOLD}1.${NC} Clique no atalho '${BOLD}Limpeza David${NC}' na área de trabalho"
     echo -e "  ${BOLD}2.${NC} Ou execute no terminal: ${BOLD}limpeza-david${NC}"
     echo -e "  ${BOLD}3.${NC} Ou execute: ${BOLD}$PYTHON_CMD $INSTALL_DIR/run.py${NC}"
-    echo ""
-    echo -e "${YELLOW}⚠️  Se o atalho não funcionar na primeira vez:${NC}"
-    echo -e "    Clique com botão direito > Permitir execução"
-    echo -e "    Ou execute: ${BOLD}chmod +x \"$DESKTOP_FILE\"${NC}"
     echo ""
     
     # Pergunta se deseja executar agora
