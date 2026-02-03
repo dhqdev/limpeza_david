@@ -126,22 +126,49 @@ function Install-Git {
 function Install-Python {
     Write-ColorOutput "🐍 Verificando Python..." "Cyan"
     
-    # Verifica se Python está instalado
-    $pythonCmd = Get-Command python -ErrorAction SilentlyContinue
-    if ($pythonCmd) {
-        $pythonVersion = python --version 2>&1
-        if ($pythonVersion -match "Python 3\.") {
+    # Verifica se Python está instalado (ignorando alias da Microsoft Store)
+    $pythonInstalled = $false
+    
+    # Tenta python
+    try {
+        $pythonVersion = & python --version 2>&1
+        if ($pythonVersion -is [string] -and $pythonVersion -match "Python 3\.") {
             Write-ColorOutput "✅ Python já está instalado: $pythonVersion" "Green"
             return $true
         }
     }
+    catch {
+        # Python não está instalado ou é alias da Microsoft Store
+    }
     
-    # Verifica python3
-    $python3Cmd = Get-Command python3 -ErrorAction SilentlyContinue
-    if ($python3Cmd) {
-        $pythonVersion = python3 --version 2>&1
-        Write-ColorOutput "✅ Python já está instalado: $pythonVersion" "Green"
-        return $true
+    # Tenta python3
+    try {
+        $pythonVersion = & python3 --version 2>&1
+        if ($pythonVersion -is [string] -and $pythonVersion -match "Python 3\.") {
+            Write-ColorOutput "✅ Python já está instalado: $pythonVersion" "Green"
+            return $true
+        }
+    }
+    catch {
+        # python3 não está instalado
+    }
+    
+    # Verifica em caminhos comuns do Python
+    $commonPythonPaths = @(
+        "$env:LOCALAPPDATA\Programs\Python\Python311\python.exe",
+        "$env:LOCALAPPDATA\Programs\Python\Python312\python.exe",
+        "$env:LOCALAPPDATA\Programs\Python\Python310\python.exe",
+        "C:\Python311\python.exe",
+        "C:\Python312\python.exe",
+        "C:\Python310\python.exe"
+    )
+    
+    foreach ($pythonPath in $commonPythonPaths) {
+        if (Test-Path $pythonPath) {
+            $pythonVersion = & $pythonPath --version 2>&1
+            Write-ColorOutput "✅ Python encontrado: $pythonVersion" "Green"
+            return $true
+        }
     }
     
     Write-ColorOutput "📥 Instalando Python..." "Yellow"
